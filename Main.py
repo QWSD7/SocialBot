@@ -1,5 +1,6 @@
 import feedparser
 import json
+import html
 import asyncio
 from datetime import datetime, timezone
 from telegram import Bot
@@ -86,10 +87,27 @@ async def fetch_and_post():
     if last_posted_link is None:
         last_entry = sorted_entries[-1]
         article_text = await fetch_article_text(last_entry.link)
-        message = (
-            f"📰 <b>{last_entry.title}</b>\n\n{article_text}\n\n🔗 {last_entry.link}"
-        )
-        await bot.send_message(chat_id=CHANNEL_ID, text=message, parse_mode="HTML")
+        image_url = None
+
+        # Получение изображения из enclosure
+        if "enclosures" in last_entry and last_entry.enclosures:
+            for enclosure in last_entry.enclosures:
+                if enclosure.get("type", "").startswith("image/"):
+                    image_url = enclosure.get("url")
+                    break
+
+        message = f"📰 <b>{html.escape(last_entry.title)}</b>\n\n{html.escape(article_text)}\n\n🔗 {last_entry.link}"
+
+        if image_url:
+            await bot.send_photo(
+                chat_id=CHANNEL_ID,
+                photo=image_url,
+                caption=message[:1024],
+                parse_mode="HTML",
+            )
+        else:
+            await bot.send_message(chat_id=CHANNEL_ID, text=message, parse_mode="HTML")
+
         save_last_posted(last_entry.link)
         print("Опубликована последняя запись за сегодня (первый запуск).")
         return
@@ -109,8 +127,27 @@ async def fetch_and_post():
 
     for entry in new_entries:
         article_text = await fetch_article_text(entry.link)
-        message = f"📰 <b>{entry.title}</b>\n\n{article_text}\n\n🔗 {entry.link}"
-        await bot.send_message(chat_id=CHANNEL_ID, text=message, parse_mode="HTML")
+        image_url = None
+
+        # Получение изображения из enclosure
+        if "enclosures" in entry and entry.enclosures:
+            for enclosure in entry.enclosures:
+                if enclosure.get("type", "").startswith("image/"):
+                    image_url = enclosure.get("url")
+                    break
+
+        message = f"📰 <b>{html.escape(entry.title)}</b>\n\n{html.escape(article_text)}\n\n🔗 {entry.link}"
+
+        if image_url:
+            await bot.send_photo(
+                chat_id=CHANNEL_ID,
+                photo=image_url,
+                caption=message[:1024],
+                parse_mode="HTML",
+            )
+        else:
+            await bot.send_message(chat_id=CHANNEL_ID, text=message, parse_mode="HTML")
+
         save_last_posted(entry.link)
         print(f"Опубликовано: {entry.title}")
 
