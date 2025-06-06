@@ -3,3 +3,6 @@ python-telegram-bot==22.1
 schedule==1.2.2
 aiohttp==3.11.18
 beautifulsoup4==4.13.4
+torch==2.7.1
+transformers==4.52.4
+razdel==0.2.0
