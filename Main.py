@@ -22,15 +22,35 @@ bot = Bot(token=TELEGRAM_TOKEN)
 def load_last_posted():
     try:
         with open(STATE_FILE, "r") as f:
-            return json.load(f)
-    except:
+            data = json.load(f)
+
+        saved_date = data.get("date")
+        today = (
+            datetime.now(timezone.utc)
+            .astimezone(timezone(timedelta(hours=3)))
+            .date()
+            .isoformat()
+        )
+
+        if saved_date != today:
+            os.remove(STATE_FILE)
+            return None
+
+        return data.get("link")
+    except Exception as e:
         return None
 
 
 # Сохранение последней опубликованной ссылки
 def save_last_posted(link):
+    today = (
+        datetime.now(timezone.utc)
+        .astimezone(timezone(timedelta(hours=3)))
+        .date()
+        .isoformat()
+    )
     with open(STATE_FILE, "w") as f:
-        json.dump(link, f)
+        json.dump({"link": link, "date": today}, f)
 
 
 # Проверка, находится ли запись в пределах текущих суток
