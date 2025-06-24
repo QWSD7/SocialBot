@@ -6,3 +6,7 @@ beautifulsoup4==4.13.4
 torch==2.7.1
 transformers==4.52.4
 razdel==0.2.0
+tiktoken==0.9.0
+protobuf==6.31.1
+blobfile==3.0.0
+sentencepiece==0.2.0
